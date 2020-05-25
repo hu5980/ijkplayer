@@ -42,11 +42,11 @@ typedef struct IjkURLContext {
 
 typedef struct IjkURLProtocol {
     const char *name;
-    int     (*url_open2)(IjkURLContext *h, const char *url, int flags, IjkAVDictionary **options);
-    int     (*url_read)( IjkURLContext *h, unsigned char *buf, int size);
-    int64_t (*url_seek)( IjkURLContext *h, int64_t pos, int whence);
-    int     (*url_close)(IjkURLContext *h);
-    int     (*url_pause)(IjkURLContext *h);  // option
+    int     (*url_open2) (IjkURLContext *h, const char *url, int flags, IjkAVDictionary **options);
+    int     (*url_read)  (IjkURLContext *h, unsigned char *buf, int size);
+    int64_t (*url_seek)  (IjkURLContext *h, int64_t pos, int whence);
+    int     (*url_close) (IjkURLContext *h);
+    int     (*url_pause) (IjkURLContext *h);  // option
     int     (*url_resume)(IjkURLContext *h);  // option
     int priv_data_size;
     int flags;

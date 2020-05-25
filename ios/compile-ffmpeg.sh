@@ -19,11 +19,11 @@
 #----------
 # modify for your build tool
 
-FF_ALL_ARCHS_IOS6_SDK="armv7 armv7s i386"
-FF_ALL_ARCHS_IOS7_SDK="armv7 armv7s arm64 i386 x86_64"
-FF_ALL_ARCHS_IOS8_SDK="armv7 arm64 i386 x86_64"
-
-FF_ALL_ARCHS=$FF_ALL_ARCHS_IOS8_SDK
+FF_ALL_ARCHS_IOS6_SDK="armv7s i386"
+FF_ALL_ARCHS_IOS7_SDK="armv7s arm64 i386 x86_64"
+FF_ALL_ARCHS_IOS8_SDK="arm64 i386 x86_64"
+FF_ALL_ARCHS_IOS10_SDK="arm64 i386 x86_64"
+FF_ALL_ARCHS=$FF_ALL_ARCHS_IOS10_SDK
 
 #----------
 UNI_BUILD_ROOT=`pwd`
@@ -79,6 +79,26 @@ do_lipo_ssl () {
     fi
 }
 
+AOM_LIBS="libaom"
+do_lipo_aom () {
+    LIB_FILE=$1
+    LIPO_FLAGS=
+    for ARCH in $FF_ALL_ARCHS
+    do
+        ARCH_LIB_FILE="$UNI_BUILD_ROOT/build/aom-$ARCH/output/lib/$LIB_FILE"
+        if [ -f "$ARCH_LIB_FILE" ]; then
+            LIPO_FLAGS="$LIPO_FLAGS $ARCH_LIB_FILE"
+        else
+            echo "skip $LIB_FILE of $ARCH";
+        fi
+    done
+
+    if [ "$LIPO_FLAGS" != "" ]; then
+        xcrun lipo -create $LIPO_FLAGS -output $UNI_BUILD_ROOT/build/universal/lib/$LIB_FILE
+        xcrun lipo -info $UNI_BUILD_ROOT/build/universal/lib/$LIB_FILE
+    fi
+}
+
 do_lipo_all () {
     mkdir -p $UNI_BUILD_ROOT/build/universal/lib
     echo "lipo archs: $FF_ALL_ARCHS"
@@ -91,6 +111,9 @@ do_lipo_all () {
     for ARCH in $FF_ALL_ARCHS
     do
         ARCH_INC_DIR="$UNI_BUILD_ROOT/build/ffmpeg-$ARCH/output/include"
+        echo "++++++++++"
+        echo $ARCH_INC_DIR
+        echo "++++++++++"
         if [ -d "$ARCH_INC_DIR" ]; then
             if [ -z "$ANY_ARCH" ]; then
                 ANY_ARCH=$ARCH
@@ -113,6 +136,11 @@ do_lipo_all () {
     for SSL_LIB in $SSL_LIBS
     do
         do_lipo_ssl "$SSL_LIB.a";
+    done
+    
+    for AOM_LIB in $AOM_LIBS
+    do
+        do_lipo_aom "$AOM_LIB.a";
     done
 }
 

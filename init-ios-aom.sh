@@ -16,27 +16,26 @@
 # limitations under the License.
 #
 
-IJK_OPENSSL_UPSTREAM=https://github.com/openssl/openssl
-IJK_OPENSSL_FORK=https://github.com/Bilibili/openssl.git
-IJK_OPENSSL_COMMIT=OpenSSL_1_0_2u
-IJK_OPENSSL_LOCAL_REPO=extra/openssl
+IJK_AOM_UPSTREAM=https://aomedia.googlesource.com/aom
+IJK_AOM_FORK=https://aomedia.googlesource.com/aom
+IJK_AOM_COMMIT=a5e3f02b18668957bbd054a1058cb190f298ca6f
+IJK_AOM_LOCAL_REPO=extra/aom
 
 set -e
 TOOLS=tools
 
-echo "== pull openssl base =="
-sh $TOOLS/pull-repo-base.sh $IJK_OPENSSL_UPSTREAM $IJK_OPENSSL_LOCAL_REPO
+echo "== pull aom base =="
+sh $TOOLS/pull-repo-base.sh $IJK_AOM_UPSTREAM $IJK_AOM_LOCAL_REPO
 
 function pull_fork()
 {
-    echo "== pull openssl fork $1 =="
-    sh $TOOLS/pull-repo-ref.sh $IJK_OPENSSL_FORK ios/openssl-$1 ${IJK_OPENSSL_LOCAL_REPO}
-    cd ios/openssl-$1
-    git checkout ${IJK_OPENSSL_COMMIT} -B ijkplayer
+    echo "== pull aom fork $1 =="
+    sh $TOOLS/pull-repo-ref.sh $IJK_AOM_FORK ios/aom-$1 ${IJK_AOM_LOCAL_REPO}
+    cd ios/aom-$1
+    git checkout ${IJK_AOM_COMMIT} -B ijkplayer
     cd -
 }
 
-pull_fork "armv7"
 pull_fork "armv7s"
 pull_fork "arm64"
 pull_fork "i386"

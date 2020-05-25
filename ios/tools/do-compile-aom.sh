@@ -17,7 +17,7 @@
 #
 
 # This script is based on projects below
-# https://github.com/x2on/OpenSSL-for-iPhone
+# https://github.com/x2on/aom-for-iPhone
 
 #--------------------
 echo "===================="
@@ -61,19 +61,19 @@ FF_BUILD_ROOT=`pwd`
 FF_TAGET_OS="darwin"
 
 
-# openssl build params
+# aom build params
 export COMMON_FF_CFG_FLAGS=
 
-OPENSSL_CFG_FLAGS=
-OPENSSL_EXTRA_CFLAGS=
-OPENSSL_CFG_CPU=
+AOM_CFG_FLAGS=
+AOM_EXTRA_CFLAGS=
+AOM_CFG_CPU=
 
 # i386, x86_64
-OPENSSL_CFG_FLAGS_SIMULATOR=
+AOM_CFG_FLAGS_SIMULATOR=
 
 # armv7, armv7s, arm64
-OPENSSL_CFG_FLAGS_ARM=
-OPENSSL_CFG_FLAGS_ARM="iphoneos-cross"
+AOM_CFG_FLAGS_ARM=
+AOM_CFG_FLAGS_ARM="iphoneos-cross"
 
 echo "build_root: $FF_BUILD_ROOT"
 
@@ -82,40 +82,51 @@ echo "===================="
 echo "[*] config arch $FF_ARCH"
 echo "===================="
 
+#build 名称
 FF_BUILD_NAME="unknown"
+#平台
 FF_XCRUN_PLATFORM="iPhoneOS"
+#平台版本
 FF_XCRUN_OSVERSION=
 FF_GASPP_EXPORT=
+#Xcode bitcode 设置
 FF_XCODE_BITCODE=
+#交叉编译cmark参数
+FF_CMAKE_TOOLCHAIN=
 
 if [ "$FF_ARCH" = "i386" ]; then
-    FF_BUILD_NAME="openssl-i386"
+    FF_BUILD_NAME="aom-i386"
     FF_XCRUN_PLATFORM="iPhoneSimulator"
     FF_XCRUN_OSVERSION="-mios-simulator-version-min=8.0"
-    OPENSSL_CFG_FLAGS="darwin-i386-cc $OPENSSL_CFG_FLAGS"
+    AOM_CFG_FLAGS="darwin-i386-cc $AOM_CFG_FLAGS"
+    FF_CMAKE_TOOLCHAIN="build/cmake/toolchains/x86-ios-simulator.cmake"
 elif [ "$FF_ARCH" = "x86_64" ]; then
-    FF_BUILD_NAME="openssl-x86_64"
+    FF_BUILD_NAME="aom-x86_64"
     FF_XCRUN_PLATFORM="iPhoneSimulator"
     FF_XCRUN_OSVERSION="-mios-simulator-version-min=8.0"
-    OPENSSL_CFG_FLAGS="darwin64-x86_64-cc $OPENSSL_CFG_FLAGS"
+    AOM_CFG_FLAGS="darwin64-x86_64-cc $AOM_CFG_FLAGS"
+    FF_CMAKE_TOOLCHAIN="build/cmake/toolchains/x86_64-ios-simulator.cmake"
 elif [ "$FF_ARCH" = "armv7" ]; then
-    FF_BUILD_NAME="openssl-armv7"
+    FF_BUILD_NAME="aom-armv7"
     FF_XCRUN_OSVERSION="-miphoneos-version-min=8.0"
     FF_XCODE_BITCODE="-fembed-bitcode"
-    OPENSSL_CFG_FLAGS="$OPENSSL_CFG_FLAGS_ARM $OPENSSL_CFG_FLAGS"
-#    OPENSSL_CFG_CPU="--cpu=cortex-a8"
+    AOM_CFG_FLAGS="$AOM_CFG_FLAGS_ARM $AOM_CFG_FLAGS"
+    FF_CMAKE_TOOLCHAIN="build/cmake/toolchains/armv7-ios.cmake"
+#    aom_CFG_CPU="--cpu=cortex-a8"
 elif [ "$FF_ARCH" = "armv7s" ]; then
-    FF_BUILD_NAME="openssl-armv7s"
-    OPENSSL_CFG_CPU="--cpu=swift"
+    FF_BUILD_NAME="aom-armv7s"
+    AOM_CFG_CPU="--cpu=swift"
     FF_XCRUN_OSVERSION="-miphoneos-version-min=8.0"
     FF_XCODE_BITCODE="-fembed-bitcode"
-    OPENSSL_CFG_FLAGS="$OPENSSL_CFG_FLAGS_ARM $OPENSSL_CFG_FLAGS"
+    AOM_CFG_FLAGS="$AOM_CFG_FLAGS_ARM $AOM_CFG_FLAGS"
+    FF_CMAKE_TOOLCHAIN="build/cmake/toolchains/armv7s-ios.cmake"
 elif [ "$FF_ARCH" = "arm64" ]; then
-    FF_BUILD_NAME="openssl-arm64"
+    FF_BUILD_NAME="aom-arm64"
     FF_XCRUN_OSVERSION="-miphoneos-version-min=8.0"
     FF_XCODE_BITCODE="-fembed-bitcode"
-    OPENSSL_CFG_FLAGS="$OPENSSL_CFG_FLAGS_ARM $OPENSSL_CFG_FLAGS"
+    AOM_CFG_FLAGS="$AOM_CFG_FLAGS_ARM $AOM_CFG_FLAGS"
     FF_GASPP_EXPORT="GASPP_FIX_XCODE5=1"
+    FF_CMAKE_TOOLCHAIN="build/cmake/toolchains/arm64-ios.cmake"
 else
     echo "unknown architecture $FF_ARCH";
     exit 1
@@ -130,9 +141,12 @@ echo "===================="
 echo "[*] make ios toolchain $FF_BUILD_NAME"
 echo "===================="
 
-
+#build 源目录
 FF_BUILD_SOURCE="$FF_BUILD_ROOT/$FF_BUILD_NAME"
+#build 目的目录
 FF_BUILD_PREFIX="$FF_BUILD_ROOT/build/$FF_BUILD_NAME/output"
+#交叉编译地址
+FF_BUILD_CMAKE_TOOLCHAIN="$FF_BUILD_SOURCE/$FF_CMAKE_TOOLCHAIN"
 
 mkdir -p $FF_BUILD_PREFIX
 
@@ -156,29 +170,36 @@ echo "CC: $CC"
 
 #--------------------
 echo "\n--------------------"
-echo "[*] configurate openssl"
+echo "[*] configurate aom"∂
 echo "--------------------"
 
-OPENSSL_CFG_FLAGS="$OPENSSL_CFG_FLAGS $FF_XCODE_BITCODE"
-OPENSSL_CFG_FLAGS="$OPENSSL_CFG_FLAGS --openssldir=$FF_BUILD_PREFIX"
+AOM_CFG_FLAGS="$AOM_CFG_FLAGS $FF_XCODE_BITCODE"
+AOM_CFG_FLAGS="$AOM_CFG_FLAGS --aomdir=$FF_BUILD_PREFIX"
 
 # xcode configuration
 export DEBUG_INFORMATION_FORMAT=dwarf-with-dsym
 
 cd $FF_BUILD_SOURCE
+echo "+++++++++++++"
+echo $FF_BUILD_SOURCE
+echo $FF_BUILD_PREFIX
+echo "+++++++++++++"
+mkdir -p $FF_BUILD_SOURCE
 if [ -f "./Makefile" ]; then
     echo 'reuse configure'
 else
-    echo "config: $OPENSSL_CFG_FLAGS"
-    ./Configure \
-        $OPENSSL_CFG_FLAGS
-    make clean
+    echo "---------------"
+    echo "config: $AOM_CFG_FLAGS"
+    echo "---------------"
+    cmake -B $FF_BUILD_PREFIX -H. -DCMAKE_TOOLCHAIN_FILE=$FF_BUILD_CMAKE_TOOLCHAIN  -DCMAKE_INSTALL_PREFIX=$FF_BUILD_PREFIX
+    cd $FF_BUILD_PREFIX
 fi
 
 #--------------------
 echo "\n--------------------"
-echo "[*] compile openssl"
+echo "[*] compile aom"
 echo "--------------------"
 set +e
 make
-make install_sw
+make install
+make clean

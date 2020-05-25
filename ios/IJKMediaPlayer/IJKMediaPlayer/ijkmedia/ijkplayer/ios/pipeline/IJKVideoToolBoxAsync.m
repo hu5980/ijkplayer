@@ -1128,7 +1128,11 @@ static int vtbformat_init(VTBFormatDesc *fmt_desc, AVCodecParameters *codecpar)
                     }
 
                     fmt_desc->convert_bytestream = true;
-                    ff_isom_write_avcc(pb, extradata, extrasize);
+//                    if (codec == AV_CODEC_ID_HEVC) {
+//                        ff_isom_write_avcc(<#AVIOContext *pb#>, <#const uint8_t *data#>, <#int len#>)
+//                    } else {
+                        ff_isom_write_avcc(pb, extradata, extrasize);
+//                    }
                     extradata = NULL;
 
                     extrasize = avio_close_dyn_buf(pb, &extradata);

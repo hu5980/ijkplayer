@@ -88,3 +88,22 @@ void ijkav_register_all(void)
     IJK_REGISTER_DEMUXER(ijklivehook);
     av_log(NULL, AV_LOG_INFO, "===== custom modules end =====\n");
 }
+
+void ijkav_print_all_support_format() {
+    printf("++++++++++++++++++支持的视频格式+++++++++++++++++++++");
+    AVCodec *c_temp = av_codec_next(NULL);
+    while (c_temp != NULL) {
+        switch (c_temp->type) {
+            case AVMEDIA_TYPE_VIDEO:
+                printf("[Video]:%s\n", c_temp->name);
+                break;
+            case AVMEDIA_TYPE_AUDIO:
+                printf("[Audio]:%s\n", c_temp->name);
+                break;
+            default:
+                printf("[Other]:%s\n", c_temp->name);
+                break;
+        }
+        c_temp = c_temp->next;
+    }
+}

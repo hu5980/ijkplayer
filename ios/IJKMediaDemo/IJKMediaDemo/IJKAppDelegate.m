@@ -17,14 +17,14 @@
 
 #import "IJKAppDelegate.h"
 #import "IJKDemoMainViewController.h"
-
+#import "VideoRateViewController.h"
 @implementation IJKAppDelegate
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
     self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
     
-    UINavigationController *navigationController = [[UINavigationController alloc] initWithRootViewController:[[IJKDemoMainViewController alloc] init]];
+    UINavigationController *navigationController = [[UINavigationController alloc] initWithRootViewController:[[VideoRateViewController alloc] init]];
     
     self.viewController = navigationController;
     self.window.rootViewController = self.viewController;

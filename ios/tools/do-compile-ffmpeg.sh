@@ -120,38 +120,45 @@ FF_XCRUN_OSVERSION=
 FF_GASPP_EXPORT=
 FF_DEP_OPENSSL_INC=
 FF_DEP_OPENSSL_LIB=
+FF_DEP_AOM_INC=
+FF_DEP_AOM_LIB=
 FF_XCODE_BITCODE=
 
 if [ "$FF_ARCH" = "i386" ]; then
     FF_BUILD_NAME="ffmpeg-i386"
     FF_BUILD_NAME_OPENSSL=openssl-i386
+    FF_BUILD_NAME_AOM=aom-i386
     FF_XCRUN_PLATFORM="iPhoneSimulator"
-    FF_XCRUN_OSVERSION="-mios-simulator-version-min=6.0"
+    FF_XCRUN_OSVERSION="-mios-simulator-version-min=8.0"
     FFMPEG_CFG_FLAGS="$FFMPEG_CFG_FLAGS $FFMPEG_CFG_FLAGS_SIMULATOR"
 elif [ "$FF_ARCH" = "x86_64" ]; then
     FF_BUILD_NAME="ffmpeg-x86_64"
     FF_BUILD_NAME_OPENSSL=openssl-x86_64
+    FF_BUILD_NAME_AOM=aom-x86_64
     FF_XCRUN_PLATFORM="iPhoneSimulator"
-    FF_XCRUN_OSVERSION="-mios-simulator-version-min=7.0"
+    FF_XCRUN_OSVERSION="-mios-simulator-version-min=8.0"
     FFMPEG_CFG_FLAGS="$FFMPEG_CFG_FLAGS $FFMPEG_CFG_FLAGS_SIMULATOR"
 elif [ "$FF_ARCH" = "armv7" ]; then
     FF_BUILD_NAME="ffmpeg-armv7"
     FF_BUILD_NAME_OPENSSL=openssl-armv7
-    FF_XCRUN_OSVERSION="-miphoneos-version-min=6.0"
+    FF_BUILD_NAME_AOM=aom-armv7
+    FF_XCRUN_OSVERSION="-miphoneos-version-min=8.0"
     FF_XCODE_BITCODE="-fembed-bitcode"
     FFMPEG_CFG_FLAGS="$FFMPEG_CFG_FLAGS $FFMPEG_CFG_FLAGS_ARM"
 #    FFMPEG_CFG_CPU="--cpu=cortex-a8"
 elif [ "$FF_ARCH" = "armv7s" ]; then
     FF_BUILD_NAME="ffmpeg-armv7s"
     FF_BUILD_NAME_OPENSSL=openssl-armv7s
+    FF_BUILD_NAME_AOM=aom-armv7s
     FFMPEG_CFG_CPU="--cpu=swift"
-    FF_XCRUN_OSVERSION="-miphoneos-version-min=6.0"
+    FF_XCRUN_OSVERSION="-miphoneos-version-min=8.0"
     FF_XCODE_BITCODE="-fembed-bitcode"
     FFMPEG_CFG_FLAGS="$FFMPEG_CFG_FLAGS $FFMPEG_CFG_FLAGS_ARM"
 elif [ "$FF_ARCH" = "arm64" ]; then
     FF_BUILD_NAME="ffmpeg-arm64"
     FF_BUILD_NAME_OPENSSL=openssl-arm64
-    FF_XCRUN_OSVERSION="-miphoneos-version-min=7.0"
+    FF_BUILD_NAME_AOM=aom-arm64
+    FF_XCRUN_OSVERSION="-miphoneos-version-min=8.0"
     FF_XCODE_BITCODE="-fembed-bitcode"
     FFMPEG_CFG_FLAGS="$FFMPEG_CFG_FLAGS $FFMPEG_CFG_FLAGS_ARM"
     FF_GASPP_EXPORT="GASPP_FIX_XCODE5=1"
@@ -192,9 +199,10 @@ FFMPEG_CFLAGS=
 FFMPEG_CFLAGS="$FFMPEG_CFLAGS -arch $FF_ARCH"
 FFMPEG_CFLAGS="$FFMPEG_CFLAGS $FF_XCRUN_OSVERSION"
 FFMPEG_CFLAGS="$FFMPEG_CFLAGS $FFMPEG_EXTRA_CFLAGS"
-FFMPEG_CFLAGS="$FFMPEG_CFLAGS $FF_XCODE_BITCODE"
+FFMPEG_CFLAGS="$FFMPEG_CFLAGS"
 FFMPEG_LDFLAGS="$FFMPEG_CFLAGS"
 FFMPEG_DEP_LIBS=
+FFMPEG_AOMDEP_LIBS=
 
 #--------------------
 echo "\n--------------------"
@@ -202,6 +210,9 @@ echo "[*] check OpenSSL"
 echo "----------------------"
 FFMPEG_DEP_OPENSSL_INC=$FF_BUILD_ROOT/build/$FF_BUILD_NAME_OPENSSL/output/include
 FFMPEG_DEP_OPENSSL_LIB=$FF_BUILD_ROOT/build/$FF_BUILD_NAME_OPENSSL/output/lib
+FFMPEG_DEP_AOM_INC=$FF_BUILD_ROOT/build/$FF_BUILD_NAME_AOM/output/include
+FFMPEG_DEP_AOM_LIB=$FF_BUILD_ROOT/build/$FF_BUILD_NAME_AOM/output/lib
+FF_PREFIX=/usr
 #--------------------
 # with openssl
 if [ -f "${FFMPEG_DEP_OPENSSL_LIB}/libssl.a" ]; then
@@ -209,6 +220,31 @@ if [ -f "${FFMPEG_DEP_OPENSSL_LIB}/libssl.a" ]; then
 
     FFMPEG_CFLAGS="$FFMPEG_CFLAGS -I${FFMPEG_DEP_OPENSSL_INC}"
     FFMPEG_DEP_LIBS="$FFMPEG_CFLAGS -L${FFMPEG_DEP_OPENSSL_LIB} -lssl -lcrypto"
+fi
+
+# with aom
+echo "\n--------------------"
+echo "[*] check AOM"
+echo "${FFMPEG_DEP_AOM_LIB}/libaom.a"
+echo "----------------------"
+
+if [ -f "${FFMPEG_DEP_AOM_LIB}/libaom.a" ]; then
+    echo "libaom detected"
+#    FF_CFG_FLAGS="$FF_CFG_FLAGS --enable-libaom"
+#    FF_CFG_FLAGS="$FF_CFG_FLAGS --enable-encoder=libaom"
+#    FF_CFLAGS="$FF_CFLAGS -I${FFMPEG_DEP_AOM_INC}"
+#    FF_DEP_LIBS="$FF_DEP_LIBS -L${FFMPEG_DEP_AOM_LIB} -laom"
+
+
+    FFMPEG_CFG_FLAGS="$FFMPEG_CFG_FLAGS --enable-libaom"
+    FFMPEG_CFLAGS="$FFMPEG_CFLAGS -I${FFMPEG_DEP_AOM_INC}"
+    FFMPEG_AOMDEP_LIBS="$FFMPEG_CFLAGS -L${FFMPEG_DEP_AOM_LIB} -laom"
+
+#    export PKG_CONFIG_PATH="$FFMPEG_DEP_AOM_LIB/pkgconfig" #:$FF_PREFIX/lib/pkgconfig
+#    source ~/.bash_profile
+#    echo "\n--------------------"
+#    echo $PKG_CONFIG_PATH
+#    echo "----------------------"
 fi
 
 #--------------------
@@ -239,7 +275,7 @@ else
         $FFMPEG_CFG_CPU \
         --extra-cflags="$FFMPEG_CFLAGS" \
         --extra-cxxflags="$FFMPEG_CFLAGS" \
-        --extra-ldflags="$FFMPEG_LDFLAGS $FFMPEG_DEP_LIBS"
+        --extra-ldflags="$FFMPEG_LDFLAGS $FFMPEG_DEP_LIBS $FFMPEG_AOMDEP_LIBS"
     make clean
 fi
 
